@@ -180,11 +180,74 @@ app.get('/list', function (req, res) {
 
     })
 });
+//:coin_id - bitcoin
+//:date - 1d, 1w, 1m, 1y
+app.get('/history/highlow/:coin_id/:date', function (req, res) {
+
+    var date = req.params.date;
+    console.log(date);
+    var d_count = date.substring(0,date.length - 1);
+    console.log(d_count);
+    var last = date.substring(date.length - 1,date.length);
+    console.log(last);
+    var today = new Date();
+    console.log(today);
+    if(last.toLowerCase()=='d')
+    {
+        today.setDate(today.getDate() - d_count);
+
+    }
+    else if(last.toLowerCase()=='w')
+    {
+        today.setDate(today.getDate() - d_count*7);
+    }
+    else if(last.toLowerCase()=='m')
+    {
+        today.setMonth(today.getMonth() - d_count);
+    }
+    else if(last.toLowerCase()=='y')
+    {
+        today.setYear(today.getYear() - d_count);
+    }
+    else {
+        res.send('invalid parameter!( 1d, 1w, 1m, 1y)!');
+        return;
+    }
+    console.log(today);
+    date = dateFormat(today, "yyyy-mm-dd");
+
+    var coin_id = req.params.coin_id;
+
+
+    var con = mysql.createConnection({
+        host: "node-js.ca4faffwkqbi.us-east-2.rds.amazonaws.com",
+        user: "root",
+        password: "123456789",
+        database: "node"
+    });
+
+    con.connect(function(err) {
+        if (err) throw err;
+        console.log("Connected!");
+        con.query("select * from `coins` where `last_date`='" + date + "' and `coins`='" + coin_id + "'", function (err, result) {
+            if (err) throw err;
+            res.json(result);
+
+            con.end();
+        });
+    });
+
+
+
+
+});
+
+
 
 
 // Change the 404 message modifing the middleware
 app.use(function(req, res, next) {
-    res.status(404).send("Sorry, there is no any service like. Have a nice day :)");
+    res.status(404).send("Sorry, there is no any service like. Please try again :)");
 });
 
 // start the server in the port 3000 !
